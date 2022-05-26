@@ -36,7 +36,7 @@ usage：
 """.strip()
 __plugin_des__ = "汉字Wordle 猜成语"
 __plugin_type__ = ("群内小游戏",)
-__plugin_cmd__ = ["@我 + “猜成语"]
+__plugin_cmd__ = ["猜成语", "提示", "结束游戏"]
 __plugin_version__ = 0.1
 __plugin_author__ = "yajiwa"
 
@@ -68,7 +68,7 @@ handle = on_shell_command("handle", parser=parser, block=True, priority=6)
 
 @handle.handle()
 async def _(
-    matcher: Matcher, event: MessageEvent, argv: List[str] = ShellCommandArgv()
+        matcher: Matcher, event: MessageEvent, argv: List[str] = ShellCommandArgv()
 ):
     await handle_handle(matcher, event, argv)
 
@@ -113,7 +113,6 @@ shortcut("猜成语", rule=to_me())
 shortcut("提示", ["--hint"], aliases={"给个提示"}, rule=game_running)
 shortcut("结束", ["--stop"], aliases={"停止游戏", "结束游戏"}, rule=game_running)
 
-
 idiom_matcher = on_message(
     Rule(game_running) & get_idiom_input, block=True, priority=7
 )
@@ -148,7 +147,7 @@ def set_timeout(matcher: Matcher, cid: str, timeout: float = 300):
 
 async def handle_handle(matcher: Matcher, event: MessageEvent, argv: List[str]):
     async def send(
-        message: Optional[str] = None, image: Optional[BytesIO] = None
+            message: Optional[str] = None, image: Optional[BytesIO] = None
     ) -> NoReturn:
         if not (message or image):
             await matcher.finish()

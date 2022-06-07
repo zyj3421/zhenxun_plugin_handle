@@ -17,6 +17,7 @@ from nonebot.adapters.onebot.v11 import (
     Message,
     MessageSegment,
 )
+from models.bag_user import BagUser
 
 from .data_source import Handle, GuessResult
 from .utils import random_idiom, load_font
@@ -195,10 +196,13 @@ async def handle_handle(matcher: Matcher, event: MessageEvent, argv: List[str]):
     result = game.guess(idiom)
     if result in [GuessResult.WIN, GuessResult.LOSS]:
         games.pop(cid)
+        if result == GuessResult.WIN:
+            await BagUser.add_gold(event.user_id, event.group_id, 200)
+            text = f"\n[CQ:at,qq={event.user_id}]你获得了200金币，目前金币余额为{str(await BagUser.get_gold(event.user_id, event.group_id))}"
         await send(
-            ("恭喜你猜出了成语！" if result == GuessResult.WIN else "很遗憾，没有人猜出来呢")
-            + f"\n{game.result}",
-            game.draw(),
+            f"{game.result}"
+            + ("\n恭喜你猜出了成语！" + text if result == GuessResult.WIN else "\n很遗憾，没有人猜出来呢") ,
+            game.draw(), 
         )
     elif result == GuessResult.DUPLICATE:
         await send("你已经猜过这个成语了呢")

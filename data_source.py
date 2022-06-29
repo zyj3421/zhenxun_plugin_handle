@@ -3,13 +3,14 @@ from io import BytesIO
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
 from typing import Iterable, Tuple, List, Optional
-from .utils import get_pinyin, load_font, save_jpg
+from .utils import legal_idiom, get_pinyin, load_font, save_jpg
 
 
 class GuessResult(Enum):
     WIN = 0  # 猜出正确成语
     LOSS = 1  # 达到最大可猜次数，未猜出正确成语
     DUPLICATE = 2  # 成语重复
+    ILLEGAL = 3  # 成语不在词库内
 
 
 class Handle:
@@ -45,6 +46,8 @@ class Handle:
         self.font_tone = await load_font("Consolas.ttf", font_size_tone)
 
     def guess(self, idiom: str) -> Optional[GuessResult]:
+        if not legal_idiom(idiom):
+            return GuessResult.ILLEGAL
         if idiom in self.guessed_idiom:
             return GuessResult.DUPLICATE
         self.guessed_idiom.append(idiom)

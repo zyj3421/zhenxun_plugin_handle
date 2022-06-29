@@ -18,6 +18,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment,
 )
 from models.bag_user import BagUser
+from configs.config import NICKNAME
 
 from .data_source import Handle, GuessResult
 from .utils import random_idiom
@@ -207,5 +208,9 @@ async def handle_handle(matcher: Matcher, event: MessageEvent, argv: List[str]):
             + ("\n恭喜你猜出了成语！" + text if result == GuessResult.WIN else "\n很遗憾，没有人猜出来呢"),
             game.draw(),
         )
+    elif result == GuessResult.DUPLICATE:
+        await send("你已经猜过这个成语了呢")
+    elif result == GuessResult.ILLEGAL:
+        await send(f"{idiom} 不在{NICKNAME}的词库里呢，请重新发送成语吧")
     else:
         await send(image=game.draw())

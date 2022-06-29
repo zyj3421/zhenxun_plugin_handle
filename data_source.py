@@ -1,4 +1,3 @@
-import random
 from enum import Enum
 from io import BytesIO
 from PIL import Image, ImageDraw
@@ -22,6 +21,8 @@ class Handle:
         self.times: int = 10  # 可猜次数
         self.guessed_idiom: List[str] = []  # 记录已猜成语
         self.guessed_pinyin: List[List[Tuple[str, str, str]]] = []  # 记录已猜成语的拼音
+        self.hinted = False   # 记录当前是否已提示
+        self.hinted_times: int = 0  # 记录提示次数
 
         self.block_size = (160, 160)  # 文字块尺寸
         self.block_padding = (20, 20)  # 文字块之间间距
@@ -95,6 +96,7 @@ class Handle:
         return block
 
     def draw(self) -> BytesIO:
+        self.hinted = False
         rows = min(len(self.guessed_idiom) + 1, self.times)
         board_w = self.length * self.block_size[0]
         board_w += (self.length - 1) * self.block_padding[0] + 2 * self.padding[0]
@@ -139,6 +141,9 @@ class Handle:
         return save_jpg(board)
 
     def draw_hint(self) -> BytesIO:
+        if not self.hinted and len(self.guessed_idiom) > 0:
+            self.hinted = True
+            self.hinted_times += 1
         guessed_char = set("".join(self.guessed_idiom))
         guessed_initial = set()
         guessed_final = set()

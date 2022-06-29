@@ -20,7 +20,7 @@ from nonebot.adapters.onebot.v11 import (
 from models.bag_user import BagUser
 
 from .data_source import Handle, GuessResult
-from .utils import random_idiom, load_font
+from .utils import random_idiom
 
 __zx_plugin_name__ = "猜成语"
 __plugin_usage__ = """
@@ -196,15 +196,16 @@ async def handle_handle(matcher: Matcher, event: MessageEvent, argv: List[str]):
     result = game.guess(idiom)
     if result in [GuessResult.WIN, GuessResult.LOSS]:
         games.pop(cid)
+        text = None
         if result == GuessResult.WIN:
-            await BagUser.add_gold(event.user_id, event.group_id, 200)
-            text = f"\n[CQ:at,qq={event.user_id}]你获得了200金币，目前金币余额为{str(await BagUser.get_gold(event.user_id, event.group_id))}"
+            # 奖励机制：单次猜中400金币，之后每次减半，每使用一次提示也记为猜1次
+            bonus_coins = int(400 / 2 ** (len(game.guessed_idiom) + game.hinted_times - 1) + 0.5)
+            await BagUser.add_gold(event.user_id, event.group_id, bonus_coins)
+            text = f"\n[CQ:at,qq={event.user_id}]你获得了{bonus_coins}金币，目前金币余额为{str(await BagUser.get_gold(event.user_id, event.group_id))}"
         await send(
             f"{game.result}"
-            + ("\n恭喜你猜出了成语！" + text if result == GuessResult.WIN else "\n很遗憾，没有人猜出来呢") ,
-            game.draw(), 
+            + ("\n恭喜你猜出了成语！" + text if result == GuessResult.WIN else "\n很遗憾，没有人猜出来呢"),
+            game.draw(),
         )
-    elif result == GuessResult.DUPLICATE:
-        await send("你已经猜过这个成语了呢")
     else:
         await send(image=game.draw())
